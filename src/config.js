@@ -1,7 +1,7 @@
 const config = {
     WEBSOCKET_URL:
 
-        'http://localhost:8000',
+        'http://conference-app-fabian.azurewebsites.net',
 };
 
 export default config;
