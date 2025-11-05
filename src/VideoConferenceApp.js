@@ -27,6 +27,7 @@ export class VideoConferenceApp {
         this.peerManager = new PeerConnectionManager();
         this.wsManager = new WebSocketManager(config.WEBSOCKET_URL);
         this.rtcManager = new WebRTCManager(this.peerManager, UIManager, this.wsManager);
+        this.controlsInitialized = false;
     }
 
     /**
@@ -52,11 +53,83 @@ export class VideoConferenceApp {
             const stream = await this.peerManager.setupLocalStream();
             this.localVideoElement.srcObject = stream;
             console.log('Stream local obtenido y listo.');
+
+            // Initialize controls after media is ready
+            this.initializeControls();
         } catch (error) {
             console.error('Error al configurar el stream local:', error);
             alert('No se pudo acceder a la cámara y al micrófono. Por favor, verifica los permisos y refresca la página.');
             throw error; // Detener la ejecución si no se puede obtener el stream.
         }
+    }
+
+    /**
+     * Initialize media control buttons
+     */
+    initializeControls() {
+        if (this.controlsInitialized) return;
+
+        const controlsContainer = document.getElementById('controls') || this.createControlsContainer();
+
+        // Mute button
+        const muteButton = UIManager.createMuteButton('local', () => {
+            const isMuted = this.rtcManager.toggleAudio();
+            UIManager.toggleButtonState('mute-local', isMuted, '🔇 Unmute', '🎤 Mute');
+        });
+        controlsContainer.appendChild(muteButton);
+
+        // Camera button
+        const cameraButton = UIManager.createTurnOffCameraButton('local', () => {
+            const isOff = this.rtcManager.toggleVideo();
+            UIManager.toggleButtonState('camera-local', isOff, '📹 Camera On', '📹 Camera Off');
+        });
+        controlsContainer.appendChild(cameraButton);
+
+        // Share screen button
+        const shareScreenButton = UIManager.createShareScreenButton('local', async () => {
+            try {
+                await this.rtcManager.startScreenShare();
+                shareScreenButton.style.display = 'none';
+                stopShareButton.style.display = 'inline-block';
+                console.log('Screen sharing started successfully');
+            } catch (error) {
+                console.error('Failed to start screen sharing:', error);
+                alert('No se pudo compartir la pantalla. Por favor, intenta nuevamente.');
+            }
+        });
+        controlsContainer.appendChild(shareScreenButton);
+
+        // Stop share screen button
+        const stopShareButton = UIManager.createStopShareScreenButton('local', async () => {
+            await this.rtcManager.stopScreenShare();
+            stopShareButton.style.display = 'none';
+            shareScreenButton.style.display = 'inline-block';
+            console.log('Screen sharing stopped');
+        });
+        controlsContainer.appendChild(stopShareButton);
+
+        this.controlsInitialized = true;
+    }
+
+    /**
+     * Create controls container if it doesn't exist
+     */
+    createControlsContainer() {
+        const container = document.createElement('div');
+        container.id = 'controls';
+        container.style.cssText = 'display: flex; gap: 10px; margin: 20px 0; justify-content: center;';
+
+        // Insert after local video
+        if (this.localVideoElement.parentNode) {
+            this.localVideoElement.parentNode.insertBefore(
+                container,
+                this.localVideoElement.nextSibling
+            );
+        } else {
+            document.body.appendChild(container);
+        }
+
+        return container;
     }
 
     /**

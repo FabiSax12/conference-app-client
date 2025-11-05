@@ -208,4 +208,61 @@ export class WebRTCManager {
             this.iceCandidateQueue.delete(userId);
         }
     }
+
+    /**
+     * Toggle audio mute/unmute
+     */
+    toggleAudio() {
+        const isMuted = this.peerManager.toggleAudio();
+        return isMuted;
+    }
+
+    /**
+     * Toggle video on/off
+     */
+    toggleVideo() {
+        const isOff = this.peerManager.toggleVideo();
+        return isOff;
+    }
+
+    /**
+     * Start screen sharing
+     */
+    async startScreenShare() {
+        try {
+            const screenStream = await this.peerManager.startScreenShare();
+            return screenStream;
+        } catch (error) {
+            console.error('Failed to start screen share:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Stop screen sharing
+     */
+    async stopScreenShare() {
+        await this.peerManager.stopScreenShare();
+    }
+
+    /**
+     * Get current audio mute state
+     */
+    isAudioMuted() {
+        return this.peerManager.getAudioMuteState();
+    }
+
+    /**
+     * Get current video state
+     */
+    isVideoOff() {
+        return this.peerManager.getVideoState();
+    }
+
+    /**
+     * Get current screen share state
+     */
+    isScreenSharing() {
+        return this.peerManager.getScreenShareState();
+    }
 }
