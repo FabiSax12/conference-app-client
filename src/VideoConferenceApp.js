@@ -51,7 +51,12 @@ export class VideoConferenceApp {
     async setupLocalMedia() {
         try {
             const stream = await this.peerManager.setupLocalStream();
-            this.localVideoElement.srcObject = stream;
+
+            // Create local video in the new UI layout
+            const localVideoElement = UIManager.createVideoElement('local');
+            localVideoElement.srcObject = stream;
+            localVideoElement.muted = true; // Mute local video to prevent echo
+
             console.log('Stream local obtenido y listo.');
 
             // Initialize controls after media is ready
@@ -117,18 +122,7 @@ export class VideoConferenceApp {
     createControlsContainer() {
         const container = document.createElement('div');
         container.id = 'controls';
-        container.style.cssText = 'display: flex; gap: 10px; margin: 20px 0; justify-content: center;';
-
-        // Insert after local video
-        if (this.localVideoElement.parentNode) {
-            this.localVideoElement.parentNode.insertBefore(
-                container,
-                this.localVideoElement.nextSibling
-            );
-        } else {
-            document.body.appendChild(container);
-        }
-
+        document.body.appendChild(container);
         return container;
     }
 
